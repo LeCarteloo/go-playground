@@ -25,9 +25,7 @@ func (handler *handler) ListPosts(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	posts := struct {
-		Posts []string `json:"posts"`
-	}
+	posts := []string{"Post 1", "Post 2", "Post 3"}
 
 	json.Write(writer, http.StatusOK, posts)
 }
