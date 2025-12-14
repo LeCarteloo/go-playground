@@ -1,13 +1,16 @@
 package main
 
 import (
-	"go_playground/internal/posts"
 	"log"
 	"net/http"
 	"time"
 
+	repo "go_playground/internal/adapters/postgresql/sqlc"
+	"go_playground/internal/posts"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
 )
 
 func (app *application) mount() http.Handler {
@@ -28,10 +31,11 @@ func (app *application) mount() http.Handler {
 		writer.Write([]byte("OK"))
 	})
 
-	postsService := posts.NewService()
+	postsService := posts.NewService(repo.New(app.db))
 	postsHandler := posts.NewHandler(postsService)
 
 	router.Get("/posts", postsHandler.ListPosts)
+	router.Get("/posts/{postId}", postsHandler.GetPostById)
 
 	return router
 }
@@ -48,13 +52,12 @@ func (app *application) run(handler http.Handler) error {
 	log.Printf("Starting server on %v", app.config.addr)
 
 	return server.ListenAndServe()
-
 }
 
 type application struct {
 	config config
 	// logger
-	// db driver
+	db *pgx.Conn
 }
 
 type config struct {

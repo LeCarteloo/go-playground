@@ -6,7 +6,7 @@ import (
 )
 
 func Write(writer http.ResponseWriter, status int, data any) {
-	writer.WriteHeader(status)
 	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(status)
 	json.NewEncoder(writer).Encode(data)
 }

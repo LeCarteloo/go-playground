@@ -1,19 +1,30 @@
 package posts
 
-import "context"
+import (
+	"context"
+
+	repo "go_playground/internal/adapters/postgresql/sqlc"
+)
 
 type Service interface {
-	ListPosts(ctx context.Context) error
+	ListPosts(ctx context.Context) ([]repo.Post, error)
+	GetPostById(ctx context.Context, id int64) (repo.Post, error)
 }
 
 type svc struct {
-	// repository
+	repo repo.Querier
 }
 
-func NewService() Service {
-	return &svc{}
+func NewService(repo repo.Querier) Service {
+	return &svc{
+		repo,
+	}
 }
 
-func (s *svc) ListPosts(ctx context.Context) error {
-	return nil
+func (s *svc) ListPosts(ctx context.Context) ([]repo.Post, error) {
+	return s.repo.ListPosts(ctx)
+}
+
+func (s *svc) GetPostById(ctx context.Context, id int64) (repo.Post, error) {
+	return s.repo.GetPostById(ctx, id)
 }
