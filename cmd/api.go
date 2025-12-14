@@ -28,7 +28,8 @@ func (app *application) mount() http.Handler {
 		writer.Write([]byte("OK"))
 	})
 
-	postsHandler := posts.NewHandler(nil)
+	postsService := posts.NewService()
+	postsHandler := posts.NewHandler(postsService)
 
 	router.Get("/posts", postsHandler.ListPosts)
 
