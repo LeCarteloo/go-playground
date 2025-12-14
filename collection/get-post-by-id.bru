@@ -1,0 +1,24 @@
+meta {
+  name: Get Post By Id
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{url}}/posts/:postId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  postId: 1
+}
+
+vars:pre-request {
+  postId: 1
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
