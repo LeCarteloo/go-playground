@@ -1,21 +1,21 @@
 meta {
-  name: Get Post By Id
+  name: Get Product By Id
   type: http
   seq: 2
 }
 
 get {
-  url: {{url}}/posts/:postId
+  url: {{url}}/products/:productId
   body: none
   auth: inherit
 }
 
 params:path {
-  postId: 1
+  productId: 1
 }
 
 vars:pre-request {
-  postId: 1
+  productId: 1
 }
 
 settings {

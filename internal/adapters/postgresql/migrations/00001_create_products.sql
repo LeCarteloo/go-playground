@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS posts (
+CREATE TABLE IF NOT EXISTS products (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS posts (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS posts;
+DROP TABLE IF EXISTS products;
 -- +goose StatementEnd

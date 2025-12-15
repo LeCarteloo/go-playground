@@ -9,18 +9,18 @@ import (
 	"context"
 )
 
-const getPostById = `-- name: GetPostById :one
+const getProductById = `-- name: GetProductById :one
 SELECT
     id, title, content, created_at
 FROM
-    posts
+    products
 WHERE
     id = $1
 `
 
-func (q *Queries) GetPostById(ctx context.Context, id int64) (Post, error) {
-	row := q.db.QueryRow(ctx, getPostById, id)
-	var i Post
+func (q *Queries) GetProductById(ctx context.Context, id int64) (Product, error) {
+	row := q.db.QueryRow(ctx, getProductById, id)
+	var i Product
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
@@ -30,22 +30,22 @@ func (q *Queries) GetPostById(ctx context.Context, id int64) (Post, error) {
 	return i, err
 }
 
-const listPosts = `-- name: ListPosts :many
+const listProducts = `-- name: ListProducts :many
 SELECT
     id, title, content, created_at
 FROM
-    posts
+    products
 `
 
-func (q *Queries) ListPosts(ctx context.Context) ([]Post, error) {
-	rows, err := q.db.Query(ctx, listPosts)
+func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listProducts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Post
+	var items []Product
 	for rows.Next() {
-		var i Post
+		var i Product
 		if err := rows.Scan(
 			&i.ID,
 			&i.Title,

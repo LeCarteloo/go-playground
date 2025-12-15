@@ -6,7 +6,7 @@ import (
 	"time"
 
 	repo "go_playground/internal/adapters/postgresql/sqlc"
-	"go_playground/internal/posts"
+	"go_playground/internal/products"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -31,11 +31,11 @@ func (app *application) mount() http.Handler {
 		writer.Write([]byte("OK"))
 	})
 
-	postsService := posts.NewService(repo.New(app.db))
-	postsHandler := posts.NewHandler(postsService)
+	productsService := products.NewService(repo.New(app.db))
+	productsHandler := products.NewHandler(productsService)
 
-	router.Get("/posts", postsHandler.ListPosts)
-	router.Get("/posts/{postId}", postsHandler.GetPostById)
+	router.Get("/products", productsHandler.ListProducts)
+	router.Get("/products/{productId}", productsHandler.GetProductById)
 
 	return router
 }

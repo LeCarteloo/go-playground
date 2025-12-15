@@ -1,13 +1,13 @@
--- name: ListPosts :many
+-- name: ListProducts :many
 SELECT
     *
 FROM
-    posts;
+    products;
 
--- name: GetPostById :one
+-- name: GetProductById :one
 SELECT
     *
 FROM
-    posts
+    products
 WHERE
     id = $1;
