@@ -11,3 +11,9 @@ FROM
     products
 WHERE
     id = $1;
+
+-- name: ListOrders :many
+SELECT
+    *
+FROM
+    orders;
