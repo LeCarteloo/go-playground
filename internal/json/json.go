@@ -10,3 +10,10 @@ func Write(writer http.ResponseWriter, status int, data any) {
 	writer.WriteHeader(status)
 	json.NewEncoder(writer).Encode(data)
 }
+
+func Read[T any](request *http.Request, data *T) error {
+	decoder := json.NewDecoder(request.Body)
+	decoder.DisallowUnknownFields()
+
+	return decoder.Decode(data)
+}

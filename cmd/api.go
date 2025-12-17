@@ -37,9 +37,10 @@ func (app *application) mount() http.Handler {
 	router.Get("/products", productsHandler.ListProducts)
 	router.Get("/products/{productId}", productsHandler.GetProductById)
 
-	ordersService := orders.NewService(repo.New(app.db))
+	ordersService := orders.NewService(repo.New(app.db), app.db)
 	ordersHandler := orders.NewHandler(ordersService)
 	router.Get("/orders", ordersHandler.ListOrders)
+	router.Post("/orders", ordersHandler.CreateOrder)
 
 	return router
 }

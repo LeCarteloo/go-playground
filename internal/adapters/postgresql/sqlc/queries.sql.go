@@ -9,9 +9,57 @@ import (
 	"context"
 )
 
+const createOrder = `-- name: CreateOrder :one
+INSERT INTO orders
+    (customer_id)
+VALUES
+    ($1)
+RETURNING id, customer_id, created_at
+`
+
+func (q *Queries) CreateOrder(ctx context.Context, customerID int64) (Order, error) {
+	row := q.db.QueryRow(ctx, createOrder, customerID)
+	var i Order
+	err := row.Scan(&i.ID, &i.CustomerID, &i.CreatedAt)
+	return i, err
+}
+
+const createOrderItem = `-- name: CreateOrderItem :one
+INSERT INTO order_items
+    (order_id, product_id, quantity, price_cents)
+VALUES
+    ($1, $2, $3, $4)
+RETURNING id, order_id, product_id, quantity, price_cents
+`
+
+type CreateOrderItemParams struct {
+	OrderID    int64 `json:"order_id"`
+	ProductID  int64 `json:"product_id"`
+	Quantity   int32 `json:"quantity"`
+	PriceCents int32 `json:"price_cents"`
+}
+
+func (q *Queries) CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error) {
+	row := q.db.QueryRow(ctx, createOrderItem,
+		arg.OrderID,
+		arg.ProductID,
+		arg.Quantity,
+		arg.PriceCents,
+	)
+	var i OrderItem
+	err := row.Scan(
+		&i.ID,
+		&i.OrderID,
+		&i.ProductID,
+		&i.Quantity,
+		&i.PriceCents,
+	)
+	return i, err
+}
+
 const getProductById = `-- name: GetProductById :one
 SELECT
-    id, title, content, created_at
+    id, name, price_cents, quantity, created_at
 FROM
     products
 WHERE
@@ -23,8 +71,9 @@ func (q *Queries) GetProductById(ctx context.Context, id int64) (Product, error)
 	var i Product
 	err := row.Scan(
 		&i.ID,
-		&i.Title,
-		&i.Content,
+		&i.Name,
+		&i.PriceCents,
+		&i.Quantity,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -59,7 +108,7 @@ func (q *Queries) ListOrders(ctx context.Context) ([]Order, error) {
 
 const listProducts = `-- name: ListProducts :many
 SELECT
-    id, title, content, created_at
+    id, name, price_cents, quantity, created_at
 FROM
     products
 `
@@ -75,8 +124,9 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 		var i Product
 		if err := rows.Scan(
 			&i.ID,
-			&i.Title,
-			&i.Content,
+			&i.Name,
+			&i.PriceCents,
+			&i.Quantity,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
