@@ -2,7 +2,7 @@ package orders
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 
 	"go_playground/internal/apperrors"
@@ -22,7 +22,8 @@ func NewHandler(service Service) *handler {
 func (handler *handler) ListOrders(writer http.ResponseWriter, request *http.Request) {
 	orders, err := handler.service.ListOrders(request.Context())
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		slog.Error("error listing orders", "error", err)
+		json.WriteError(writer, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -33,24 +34,26 @@ func (handler *handler) CreateOrder(writer http.ResponseWriter, request *http.Re
 	var tempOrder createOrderParams
 
 	if err := json.Read(request, &tempOrder); err != nil {
-		log.Println(err)
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		slog.Error("error with decoding body", "error", err)
+		json.WriteError(writer, http.StatusBadRequest, err)
 		return
 	}
 
 	createdOrder, err := handler.service.CreateOrder(request.Context(), tempOrder)
 	if err != nil {
+
+		slog.Error("error creating order", "error", err)
 		switch {
 		case errors.Is(err, apperrors.ErrProductNotFound):
-			http.Error(writer, err.Error(), http.StatusNotFound)
+			json.WriteError(writer, http.StatusNotFound, err)
 		case errors.Is(err, apperrors.ErrInsufficientProductQuantity):
-			http.Error(writer, err.Error(), http.StatusBadRequest)
+			json.WriteError(writer, http.StatusBadRequest, err)
 		case errors.Is(err, apperrors.ErrInvalidCustomerID):
-			http.Error(writer, err.Error(), http.StatusBadRequest)
+			json.WriteError(writer, http.StatusBadRequest, err)
 		case errors.Is(err, apperrors.ErrNoOrderItems):
-			http.Error(writer, err.Error(), http.StatusBadRequest)
+			json.WriteError(writer, http.StatusBadRequest, err)
 		default:
-			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			json.WriteError(writer, http.StatusInternalServerError, err)
 		}
 		return
 	}

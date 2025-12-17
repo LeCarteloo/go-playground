@@ -67,6 +67,10 @@ func (s *svc) CreateOrder(ctx context.Context, tempOrder createOrderParams) (rep
 			return repo.Order{}, err
 		}
 
+		type TestParams struct {
+			test string
+		}
+
 		// TODO: Update product quantity
 	}
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -54,15 +54,14 @@ func (app *application) run(handler http.Handler) error {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	log.Printf("Starting server on %v", app.config.addr)
+	slog.Info("starting server on", "address", app.config.addr)
 
 	return server.ListenAndServe()
 }
 
 type application struct {
 	config config
-	// logger
-	db *pgx.Conn
+	db     *pgx.Conn
 }
 
 type config struct {

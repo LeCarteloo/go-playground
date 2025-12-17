@@ -4,7 +4,8 @@ import "errors"
 
 var (
 	// Product errors
-	ErrProductNotFound = errors.New("product not found")
+	ErrProductNotFound  = errors.New("product not found")
+	ErrInvalidProductID = errors.New("invalid product ID")
 
 	// Order errors
 	ErrInsufficientProductQuantity = errors.New("insufficient product quantity")
