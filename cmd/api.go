@@ -6,6 +6,7 @@ import (
 	"time"
 
 	repo "go_playground/internal/adapters/postgresql/sqlc"
+	customMiddleware "go_playground/internal/middleware"
 	"go_playground/internal/orders"
 	"go_playground/internal/products"
 
@@ -20,7 +21,7 @@ func (app *application) mount() http.Handler {
 	// Middleware
 	router.Use(middleware.RequestID) // useful for rate limiting
 	router.Use(middleware.RealIP)    // useful for rate limiting and analytics
-	router.Use(middleware.Logger)
+	router.Use(customMiddleware.Logger)
 	router.Use(middleware.Recoverer) // recover from crashes (aka panics)
 
 	// Set a timeout value on the request context (ctx), that will signal

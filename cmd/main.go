@@ -10,7 +10,25 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func setupLogger() {
+	var handler slog.Handler
+
+	if env.GetString("ENV", "development") == "production" {
+		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelInfo,
+		})
+	} else {
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
+	}
+
+	slog.SetDefault(slog.New(handler))
+}
+
 func main() {
+	setupLogger()
+
 	ctx := context.Background()
 
 	cfg := config{
@@ -19,9 +37,6 @@ func main() {
 			dsn: env.GetString("GOOSE_DBSTRING", "host=localhost user=postgres password=postgres dbname=ecommerce sslmode=disable"),
 		},
 	}
-
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
 
 	conn, err := pgx.Connect(ctx, cfg.db.dsn)
 	if err != nil {
