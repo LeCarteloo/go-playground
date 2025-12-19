@@ -2,11 +2,11 @@ package orders
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"go_playground/internal/apperrors"
 	"go_playground/internal/json"
+	"go_playground/internal/middleware"
 )
 
 type handler struct {
@@ -20,9 +20,11 @@ func NewHandler(service Service) *handler {
 }
 
 func (handler *handler) ListOrders(writer http.ResponseWriter, request *http.Request) {
+	log := middleware.GetLogger(request.Context())
+
 	orders, err := handler.service.ListOrders(request.Context())
 	if err != nil {
-		slog.Error("error listing orders", "error", err)
+		log.Error("error listing orders", "error", err)
 		json.WriteError(writer, http.StatusInternalServerError, err)
 		return
 	}
@@ -31,10 +33,12 @@ func (handler *handler) ListOrders(writer http.ResponseWriter, request *http.Req
 }
 
 func (handler *handler) CreateOrder(writer http.ResponseWriter, request *http.Request) {
+	log := middleware.GetLogger(request.Context())
+
 	var tempOrder createOrderParams
 
 	if err := json.Read(request, &tempOrder); err != nil {
-		slog.Error("error with decoding body", "error", err)
+		log.Warn("error with decoding body", "error", err)
 		json.WriteError(writer, http.StatusBadRequest, err)
 		return
 	}
@@ -42,21 +46,19 @@ func (handler *handler) CreateOrder(writer http.ResponseWriter, request *http.Re
 	createdOrder, err := handler.service.CreateOrder(request.Context(), tempOrder)
 	if err != nil {
 
-		slog.Error("error creating order", "error", err)
 		switch {
 		case errors.Is(err, apperrors.ErrProductNotFound):
 			json.WriteError(writer, http.StatusNotFound, err)
-		case errors.Is(err, apperrors.ErrInsufficientProductQuantity):
-			json.WriteError(writer, http.StatusBadRequest, err)
-		case errors.Is(err, apperrors.ErrInvalidCustomerID):
-			json.WriteError(writer, http.StatusBadRequest, err)
-		case errors.Is(err, apperrors.ErrNoOrderItems):
+		case errors.Is(err, apperrors.ErrInsufficientProductQuantity),
+			errors.Is(err, apperrors.ErrInvalidCustomerID),
+			errors.Is(err, apperrors.ErrNoOrderItems):
 			json.WriteError(writer, http.StatusBadRequest, err)
 		default:
+			log.Error("failed to create order", "error", err)
 			json.WriteError(writer, http.StatusInternalServerError, err)
 		}
 		return
 	}
 
-	json.Write(writer, http.StatusNotImplemented, createdOrder)
+	json.Write(writer, http.StatusCreated, createdOrder)
 }

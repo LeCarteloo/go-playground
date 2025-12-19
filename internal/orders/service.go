@@ -22,7 +22,16 @@ func NewService(repo *repo.Queries, db *pgx.Conn) Service {
 }
 
 func (s *svc) ListOrders(ctx context.Context) ([]repo.Order, error) {
-	return s.repo.ListOrders(ctx)
+	orders, err := s.repo.ListOrders(ctx)
+	if err != nil {
+		return []repo.Order{}, err
+	}
+
+	if orders == nil {
+		return []repo.Order{}, nil
+	}
+
+	return orders, nil
 }
 
 func (s *svc) CreateOrder(ctx context.Context, tempOrder createOrderParams) (repo.Order, error) {
@@ -66,11 +75,6 @@ func (s *svc) CreateOrder(ctx context.Context, tempOrder createOrderParams) (rep
 		if err != nil {
 			return repo.Order{}, err
 		}
-
-		type TestParams struct {
-			test string
-		}
-
 		// TODO: Update product quantity
 	}
 

@@ -21,7 +21,16 @@ func NewService(repo repo.Querier) Service {
 }
 
 func (s *svc) ListProducts(ctx context.Context) ([]repo.Product, error) {
-	return s.repo.ListProducts(ctx)
+	products, err := s.repo.ListProducts(ctx)
+	if err != nil {
+		return []repo.Product{}, err
+	}
+
+	if products == nil {
+		return []repo.Product{}, nil
+	}
+
+	return products, nil
 }
 
 func (s *svc) GetProductById(ctx context.Context, id int64) (repo.Product, error) {
@@ -30,7 +39,9 @@ func (s *svc) GetProductById(ctx context.Context, id int64) (repo.Product, error
 		if errors.Is(err, pgx.ErrNoRows) {
 			return repo.Product{}, apperrors.ErrProductNotFound
 		}
+
 		return repo.Product{}, err
 	}
+
 	return product, nil
 }
