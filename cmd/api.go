@@ -6,9 +6,9 @@ import (
 	"time"
 
 	repo "go_playground/internal/adapters/postgresql/sqlc"
+	"go_playground/internal/api/orders"
+	"go_playground/internal/api/products"
 	customMiddleware "go_playground/internal/middleware"
-	"go_playground/internal/orders"
-	"go_playground/internal/products"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
