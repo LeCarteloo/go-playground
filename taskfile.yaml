@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  up:
+    aliases: [start, run]
+    desc: Start the application with Docker Compose and run the Go application
+    preconditions:
+      - test -f docker-compose.yaml
+    cmds:
+      - docker-compose up -d
+      - go run ./cmd
+  build:
+    desc: Build the Go application
+    cmds:
+      - go build ./cmd
+
+  migration:create:
+    aliases: [migrate:create]
+    desc: Create a new migration file with goose
+    cmds:
+      - goose -s create {{.NAME}} sql
+    requires:
+      vars: [NAME]
+
+  migration:up:
+    desc: Run goose migrations up
+    preconditions:
+      - sh: docker ps -q --filter "name=postgres" --filter "status=running"
+        msg: "Postgres container is not running or not healthy. Run 'task up' first."
+    cmds:
+      - goose status
+      - task: migration:confirm
+  migration:confirm:
+    internal: true
+    prompt: "Are you sure you want to apply migrations?"
+    cmds:
+      - goose up
+
+  sqlc:generate:
+    desc: Generate sqlc code
+    cmds:
+      - sqlc generate
