@@ -8,6 +8,7 @@ import (
 	repo "go_playground/internal/adapters/postgresql/sqlc"
 	"go_playground/internal/api/orders"
 	"go_playground/internal/api/products"
+	"go_playground/internal/env"
 	customMiddleware "go_playground/internal/middleware"
 
 	"github.com/go-chi/chi/v5"
@@ -55,7 +56,10 @@ func (app *application) run(handler http.Handler) error {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	slog.Info("starting server on", "address", app.config.addr)
+	slog.Info("starting server on",
+		slog.String("addr", app.config.addr),
+		slog.String("env", env.GetString("ENV", "development")),
+	)
 
 	return server.ListenAndServe()
 }

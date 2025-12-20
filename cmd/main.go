@@ -47,6 +47,7 @@ func main() {
 
 	defer conn.Close(ctx)
 
+	// TODO: Add db name + port
 	slog.Info("connected to database")
 
 	api := application{
