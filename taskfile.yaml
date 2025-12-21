@@ -6,10 +6,12 @@ tasks:
     aliases: [start, run]
     desc: Start the application with Docker Compose and run the Go application
     preconditions:
-      - test -f docker-compose.yaml
+      - sh: docker info
+        msg: "Docker daemon is not running. Please start Docker."
     cmds:
       - docker-compose up -d
       - go run ./cmd
+
   build:
     desc: Build the Go application
     cmds:
