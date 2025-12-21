@@ -24,22 +24,23 @@ func (app *application) mount() http.Handler {
 	router.Use(middleware.RealIP)    // useful for rate limiting and analytics
 	router.Use(customMiddleware.Logger)
 	router.Use(middleware.Recoverer) // recover from crashes (aka panics)
-
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
-	router.Use(middleware.Timeout(60 * time.Second)) // 60sec limit for each request
+	router.Use(middleware.Timeout(60 * time.Second))
+
+	sqlcRepo := repo.New(app.db)
 
 	router.Get("/health", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("OK"))
 	})
 
-	productsService := products.NewService(repo.New(app.db))
+	productsService := products.NewService(sqlcRepo)
 	productsHandler := products.NewHandler(productsService)
 	router.Get("/products", productsHandler.ListProducts)
 	router.Get("/products/{productId}", productsHandler.GetProductById)
 
-	ordersService := orders.NewService(repo.New(app.db), app.db)
+	ordersService := orders.NewService(sqlcRepo, app.db)
 	ordersHandler := orders.NewHandler(ordersService)
 	router.Get("/orders", ordersHandler.ListOrders)
 	router.Post("/orders", ordersHandler.CreateOrder)

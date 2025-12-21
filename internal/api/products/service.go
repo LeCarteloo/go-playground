@@ -11,10 +11,10 @@ import (
 )
 
 type svc struct {
-	repo repo.Querier
+	repo ProductRepository
 }
 
-func NewService(repo repo.Querier) Service {
+func NewService(repo ProductRepository) Service {
 	return &svc{
 		repo,
 	}

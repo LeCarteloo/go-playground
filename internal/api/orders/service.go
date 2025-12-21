@@ -10,11 +10,11 @@ import (
 )
 
 type svc struct {
-	repo *repo.Queries
+	repo OrderRepository
 	db   *pgx.Conn
 }
 
-func NewService(repo *repo.Queries, db *pgx.Conn) Service {
+func NewService(repo OrderRepository, db *pgx.Conn) Service {
 	return &svc{
 		repo,
 		db,
