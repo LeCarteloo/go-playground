@@ -6,16 +6,15 @@ import (
 	"testing"
 
 	repo "go_playground/internal/adapters/postgresql/sqlc"
+	"go_playground/internal/apperrors"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type mockQuerier struct {
-	listProducts    func(ctx context.Context) ([]repo.Product, error)
-	getProductById  func(ctx context.Context, id int64) (repo.Product, error)
-	createOrder     func(ctx context.Context, customerID int64) (repo.Order, error)
-	createOrderItem func(ctx context.Context, arg repo.CreateOrderItemParams) (repo.OrderItem, error)
-	listOrders      func(ctx context.Context) ([]repo.Order, error)
+	listProducts   func(ctx context.Context) ([]repo.Product, error)
+	getProductById func(ctx context.Context, id int64) (repo.Product, error)
 }
 
 func (m *mockQuerier) ListProducts(ctx context.Context) ([]repo.Product, error) {
@@ -30,27 +29,6 @@ func (m *mockQuerier) GetProductById(ctx context.Context, id int64) (repo.Produc
 		return m.getProductById(ctx, id)
 	}
 	return repo.Product{}, nil
-}
-
-func (m *mockQuerier) CreateOrder(ctx context.Context, customerID int64) (repo.Order, error) {
-	if m.createOrder != nil {
-		return m.createOrder(ctx, customerID)
-	}
-	return repo.Order{}, nil
-}
-
-func (m *mockQuerier) CreateOrderItem(ctx context.Context, arg repo.CreateOrderItemParams) (repo.OrderItem, error) {
-	if m.createOrderItem != nil {
-		return m.createOrderItem(ctx, arg)
-	}
-	return repo.OrderItem{}, nil
-}
-
-func (m *mockQuerier) ListOrders(ctx context.Context) ([]repo.Order, error) {
-	if m.listOrders != nil {
-		return m.listOrders(ctx)
-	}
-	return nil, nil
 }
 
 func TestListProducts(t *testing.T) {
@@ -115,6 +93,66 @@ func TestListProducts(t *testing.T) {
 
 		service := NewService(mockService)
 		_, err := service.ListProducts(ctx)
+
+		if err == nil {
+			t.Fatalf("expected error, got nil")
+		}
+	})
+}
+
+func TestGetProductById(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("successfully return a product", func(t *testing.T) {
+		expectedProduct := repo.Product{
+			ID:         1,
+			Name:       "Product 1",
+			PriceCents: 1099,
+			Quantity:   10,
+			CreatedAt:  pgtype.Timestamptz{},
+		}
+
+		mock := &mockQuerier{
+			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
+				return expectedProduct, nil
+			},
+		}
+
+		service := NewService(mock)
+		product, err := service.GetProductById(ctx, 1)
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+
+		if product.ID != expectedProduct.ID || product.Name != expectedProduct.Name {
+			t.Errorf("expected product %+v, got %+v", expectedProduct, product)
+		}
+	})
+
+	t.Run("returns ProductNotFound error when product not found", func(t *testing.T) {
+		mock := &mockQuerier{
+			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
+				return repo.Product{}, pgx.ErrNoRows
+			},
+		}
+
+		service := NewService(mock)
+		_, error := service.GetProductById(ctx, 1)
+
+		if !errors.Is(error, apperrors.ErrProductNotFound) {
+			t.Fatalf("expected ProductNotFound error, got %v", error)
+		}
+	})
+
+	t.Run("gracefully handle database error", func(t *testing.T) {
+		mock := &mockQuerier{
+			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
+				return repo.Product{}, errors.New("database error")
+			},
+		}
+
+		service := NewService(mock)
+		_, err := service.GetProductById(ctx, 1)
 
 		if err == nil {
 			t.Fatalf("expected error, got nil")
