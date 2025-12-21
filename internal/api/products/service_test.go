@@ -12,19 +12,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type mockQuerier struct {
+type mockRepo struct {
 	listProducts   func(ctx context.Context) ([]repo.Product, error)
 	getProductById func(ctx context.Context, id int64) (repo.Product, error)
 }
 
-func (m *mockQuerier) ListProducts(ctx context.Context) ([]repo.Product, error) {
+func (m *mockRepo) ListProducts(ctx context.Context) ([]repo.Product, error) {
 	if m.listProducts != nil {
 		return m.listProducts(ctx)
 	}
 	return nil, nil
 }
 
-func (m *mockQuerier) GetProductById(ctx context.Context, id int64) (repo.Product, error) {
+func (m *mockRepo) GetProductById(ctx context.Context, id int64) (repo.Product, error) {
 	if m.getProductById != nil {
 		return m.getProductById(ctx, id)
 	}
@@ -45,7 +45,7 @@ func TestListProducts(t *testing.T) {
 			},
 		}
 
-		mock := &mockQuerier{
+		mock := &mockRepo{
 			listProducts: func(ctx context.Context) ([]repo.Product, error) {
 				return expectedProducts, nil
 			},
@@ -67,7 +67,7 @@ func TestListProducts(t *testing.T) {
 	})
 
 	t.Run("returns empty slice when no products exists", func(t *testing.T) {
-		mockService := &mockQuerier{
+		mockService := &mockRepo{
 			listProducts: func(ctx context.Context) ([]repo.Product, error) {
 				return nil, nil
 			},
@@ -85,7 +85,7 @@ func TestListProducts(t *testing.T) {
 	})
 
 	t.Run("gracefully handle database error", func(t *testing.T) {
-		mockService := &mockQuerier{
+		mockService := &mockRepo{
 			listProducts: func(ctx context.Context) ([]repo.Product, error) {
 				return nil, errors.New("database error")
 			},
@@ -112,7 +112,7 @@ func TestGetProductById(t *testing.T) {
 			CreatedAt:  pgtype.Timestamptz{},
 		}
 
-		mock := &mockQuerier{
+		mock := &mockRepo{
 			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
 				return expectedProduct, nil
 			},
@@ -130,7 +130,7 @@ func TestGetProductById(t *testing.T) {
 	})
 
 	t.Run("returns ProductNotFound error when product not found", func(t *testing.T) {
-		mock := &mockQuerier{
+		mock := &mockRepo{
 			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
 				return repo.Product{}, pgx.ErrNoRows
 			},
@@ -145,7 +145,7 @@ func TestGetProductById(t *testing.T) {
 	})
 
 	t.Run("gracefully handle database error", func(t *testing.T) {
-		mock := &mockQuerier{
+		mock := &mockRepo{
 			getProductById: func(ctx context.Context, id int64) (repo.Product, error) {
 				return repo.Product{}, errors.New("database error")
 			},
